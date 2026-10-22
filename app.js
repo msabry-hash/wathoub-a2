@@ -12,7 +12,7 @@
   const hasStatuses = apartments.some(u=>statusOf(u));
   const areaOf = u => u.terrace ? u.tr : u.a;
   const mobile = () => matchMedia('(max-width:640px)').matches;
-  const defaultZoom = (floor,technical) => mobile() ? (technical||floor==='GF' ? 3 : 2) : 1;
+  const defaultZoom = (floor,technical) => mobile() ? (technical||floor==='GF' ? 3 : 2) : (technical ? 2 : 1);
   let saved = new Set();
   try { saved = new Set(JSON.parse(localStorage.getItem('wathoub-favorites')||'[]').filter(c=>byCode.has(c)&&!byCode.get(c).terrace)); } catch {}
   const state = {floor:'GF',mode:'plan',bed:0,status:'',terraces:false,features:new Set(),savedOnly:false,page:1,sort:'code',compare:[],amenity:'B',light:'day',zoom:1,planStyle:'auto',overviewFloor:'GF'};
@@ -56,7 +56,7 @@
     const floor=state.floor,visual=FLOOR_VISUALS[floor],technical=isTechnical(floor);
     const data=technical?visual.source:floor==='GF'?FPL.GF:visual,matched=new Set(units.map(u=>u.c));
     const markers=(data.u||[]).filter(r=>byCode.get(r.c)?.floor===floor).map(r=>{const st=statusOf(byCode.get(r.c));
-      const point=technical,cx=point?r.x:r.x+r.w/2,cy=point?r.y:r.y+r.h/2,bw=point?58:34,bh=point?12:14;
+      const point=technical,cx=point?r.x:r.x+r.w/2,cy=point?r.y:r.y+r.h/2,bw=point?66:34,bh=point?13:14;
       return `<g class="unit-mark ${matched.has(r.c)?'':'dim'} ${saved.has(r.c)?'starred':''} ${st?'st-'+st:''}" data-unit="${r.c}" role="button" tabindex="${matched.has(r.c)?0:-1}" aria-label="الوحدة ${r.c}، ${byCode.get(r.c).a} متر مربع${st?'، '+STATUS_INFO[st]:''}">${point?'':`<rect class="zone" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="1"/>`}<rect class="badge" x="${cx-bw/2}" y="${cy-bh/2}" width="${bw}" height="${bh}" rx="3"/><text x="${cx}" y="${cy+(point?4:2.5)}">${r.c}</text></g>`;
     }).join('');
     $('#plan-view').innerHTML=`<div class="plan-panel ${technical?'source-plan':''}"><div class="plan-panel-head"><strong>مخطط الدور ${FPL_NAME[floor]}</strong><div class="plan-controls"><button data-zoom="in" aria-label="تكبير المخطط">+</button><button data-zoom="out" aria-label="تصغير المخطط">−</button><button data-zoom="fit" class="fit">ملاءمة</button></div></div>${visual.source?`<div class="plan-style-tabs" role="group" aria-label="نوع المخطط"><button data-plan-style="realistic" aria-pressed="${!technical}">الصورة الواقعية</button><button data-plan-style="technical" aria-pressed="${technical}">المخطط المعماري · اختر وحدتك</button></div>`:''}<div class="plan-viewport" tabindex="0" aria-label="اسحب لاستعراض المخطط بعد التكبير"><div class="plan-canvas" style="width:${state.zoom*100}%"><svg viewBox="0 0 ${data.w} ${data.h}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="مخطط وحدات الدور ${FPL_NAME[floor]}"><image href="${data.img}" width="${data.w}" height="${data.h}" preserveAspectRatio="xMidYMid meet"/>${markers}</svg></div></div><div class="plan-footer"><p class="plan-note">${technical||floor==='GF'?(hasStatuses?'اضغط على رقم الوحدة لفتح مخططها وتفاصيلها. لون الإطار يوضح حالة الوحدة.':'اضغط على رقم الوحدة لفتح مخططها وتفاصيلها. الوحدات الباهتة خارج نتائج التصفية.')+(mobile()?' اسحب المخطط يمينًا ويسارًا للتنقل.':''):'شاهد توزيع الدور، ثم استعرض الوحدات أدناه أو اخترها من المخطط المعماري.'}</p><div class="plan-file-actions"><button data-floor-gallery="${floor}">عرض الصور ↗</button><a href="${visual.download}" download="Wathoub-${floor}-Plan.${visual.download.split('.').pop()}">تحميل الصورة ↓</a></div></div></div>`;
